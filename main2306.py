@@ -116,3 +116,43 @@ plt.ylabel("Середній час доставки (дні)")
 plt.grid(True)
 
 plt.show()
+
+#- Heatmap warehouse × category- Географічна карта складів та країн замовлень
+
+print("\n--- Heatmap warehouse x category ---")
+
+import seaborn as sns
+
+query_heatmap = """
+SELECT
+    w.name AS warehouse_name,
+    c.name AS category_name,
+    COUNT(o.order_id) AS orders_count
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+JOIN categories c ON p.category_id = c.category_id
+JOIN inventory i ON p.product_id = i.product_id
+JOIN warehouses w ON i.warehouse_id = w.warehouse_id
+GROUP BY w.name, c.name
+"""
+
+df_heatmap = pd.read_sql_query(query_heatmap, conn)
+
+print(df_heatmap)
+
+pivot = df_heatmap.pivot_table(
+    values="orders_count",
+    index="warehouse_name",
+    columns="category_name",
+    aggfunc="sum",
+    fill_value=0
+)
+
+plt.figure(figsize=(10, 6))
+sns.heatmap(pivot, annot=True, fmt=".0f")
+plt.title("Heatmap: склад × категорія")
+plt.xlabel("Категорія")
+plt.ylabel("Склад")
+plt.tight_layout()
+plt.show()
