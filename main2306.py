@@ -72,11 +72,47 @@ weekend_result = df_weekend.groupby("day_of_week")["delivery_days"].mean()
 print("Середній час доставки по днях тижня:")
 print(weekend_result)
 
+weekend_result = weekend_result.reindex(
+    ["Friday", "Saturday", "Sunday"]
+)
+
 weekend_result.plot(kind="bar")
 
-plt.title("Weekend effect: середній час доставки по днях тижня")
-plt.xlabel("День тижня відправлення")
-plt.ylabel("Середній час доставки, дні")
-plt.xticks(rotation=45)
-plt.tight_layout()
+plt.title("Weekend Effect")
+plt.xlabel("День відправлення")
+plt.ylabel("Середній час доставки (дні)")
+plt.show()
+
+
+#- Проаналізувати тренд часу доставки за 2022–2026 роки
+
+query_trend = """
+SELECT
+    shipped_date,
+    delivered_date
+FROM shipments
+WHERE shipped_date IS NOT NULL
+AND delivered_date IS NOT NULL
+"""
+
+df_trend = pd.read_sql_query(query_trend, conn)
+
+df_trend["shipped_date"] = pd.to_datetime(df_trend["shipped_date"])
+df_trend["delivered_date"] = pd.to_datetime(df_trend["delivered_date"])
+
+df_trend["delivery_days"] = (df_trend["delivered_date"] - df_trend["shipped_date"]).dt.days
+
+df_trend["year"] = df_trend["shipped_date"].dt.year
+
+trend_result = df_trend.groupby("year")["delivery_days"].mean()
+
+print(trend_result)
+
+trend_result.plot(kind="line", marker="o")
+
+plt.title("Тренд часу доставки 2022-2026")
+plt.xlabel("Рік")
+plt.ylabel("Середній час доставки (дні)")
+plt.grid(True)
+
 plt.show()
