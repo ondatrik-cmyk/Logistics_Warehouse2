@@ -19,7 +19,7 @@ WHERE s.delivered_date IS NOT NULL
 """
 
 df = pd.read_sql_query(query, conn)
-#Клієнт скаржиться, що замовив товар 2 тижні тому, а доставки досі немає
+#1Клієнт скаржиться, що замовив товар 2 тижні тому, а доставки досі немає
 print("Завислі доставки:")
 print(df)
 
@@ -45,7 +45,7 @@ else:
 
 
 
-#- Перевірити наявність weekend effect (відправлення у п'ятницю або вихідні)
+#2- Перевірити наявність weekend effect (відправлення у п'ятницю або вихідні)
 print("\n--- Weekend effect ---")
 
 query_weekend = """
@@ -85,7 +85,7 @@ plt.ylabel("Середній час доставки (дні)")
 plt.show()
 
 
-#- Проаналізувати тренд часу доставки за 2022–2026 роки
+#-3 Проаналізувати тренд часу доставки за 2022–2026 роки
 
 query_trend = """
 SELECT
@@ -118,7 +118,7 @@ plt.grid(True)
 
 plt.show()
 
-#- Heatmap warehouse × category- Географічна карта складів та країн замовлень
+#-4 Heatmap warehouse × category- Географічна карта складів та країн замовлень
 
 print("\n--- Heatmap warehouse x category ---")
 
@@ -159,7 +159,7 @@ plt.tight_layout()
 plt.show()
 
 
-#- Побудувати Heatmap (month × day_of_week) середнього часу доставки
+#- 5Побудувати Heatmap (month × day_of_week) середнього часу доставки
 print("\n--- Heatmap month x day_of_week ---")
 
 query_heatmap = """
@@ -200,7 +200,7 @@ plt.tight_layout()
 plt.show()
 
 
-# Прогнозування обсягу відвантажень
+#6 Прогнозування обсягу відвантажень
 
 query = """
 SELECT
@@ -246,7 +246,7 @@ plt.xlabel("Month")
 plt.ylabel("Average Shipments")
 plt.show()
 
-#- Перевірити залежність між вартістю та швидкістю доставки
+#-7 Перевірити залежність між вартістю та швидкістю доставки
 print("\n--- Вартість vs швидкість доставки ---")
 
 query_cost = """
@@ -280,3 +280,83 @@ plt.ylabel("Середній час доставки (дні)")
 plt.grid(True)
 plt.ylim(0,5)
 plt.show()
+
+
+#8Наближається Black Friday. Відділ закупівель хоче знати — чи **вистачить місця на складах** для додаткових запасів?
+#8.1Порахувати ** поточну заповненість кожного складу ** (сума quantity у inventory)
+
+print("\n--- Заповненість складів ---")
+
+query_storage = """
+SELECT
+    w.name AS warehouse_name,
+    SUM(i.quantity) AS total_quantity
+FROM inventory i
+JOIN warehouses w
+ON i.warehouse_id = w.warehouse_id
+GROUP BY w.name
+"""
+
+df_storage = pd.read_sql_query(query_storage, conn)
+print(df_storage)
+
+#8.2. Якщо припустити, що кожен склад може вмістити на 30% більше — скільки ще товарів можна дозавантажити?
+df_storage["max_capacity"] = df_storage["total_quantity"] * 1.3
+df_storage["free_space"] = (df_storage["max_capacity"]- df_storage["total_quantity"])
+
+print(df_storage[["warehouse_name", "total_quantity", "free_space"]])
+
+#8.3 Які **категорії товарів** займають найбільше місця на кожному складі?
+
+print("\n--- Категорії на складах ---")
+query_category = """
+SELECT
+    w.name AS warehouse_name,
+    c.name AS category_name,
+    SUM(i.quantity) AS total_quantity
+FROM inventory i
+JOIN warehouses w
+ON i.warehouse_id = w.warehouse_id
+JOIN products p
+ON i.product_id = p.product_id
+JOIN categories c
+ON p.category_id = c.category_id
+GROUP BY w.name, c.name
+ORDER BY total_quantity DESC
+"""
+
+df_category = pd.read_sql_query(query_category, conn)
+
+print(df_category)
+
+#8.4. Побудувати **bar chart** — заповненість складів з лінією 70% (резерв)
+plt.figure(figsize=(10,5))
+plt.bar(df_storage["warehouse_name"],df_storage["total_quantity"])
+reserve_line = (df_storage["max_capacity"] * 0.7).mean()
+
+plt.axhline(
+    reserve_line,
+    color="red",
+    linestyle="--",
+    label="70% резерв")
+
+plt.title("Заповненість складів")
+plt.xlabel("Склад")
+plt.ylabel("Кількість товару")
+
+plt.legend()
+plt.xticks(rotation=45)
+
+plt.tight_layout()
+plt.show()
+
+#8.5. Визначити склади, які працюють на **понад 80% ємності** — там можливий дефіцит місця
+df_storage["load_percent"] = (df_storage["total_quantity"]/ df_storage["max_capacity"]) * 100
+
+risk_storage = df_storage[df_storage["load_percent"] > 80]
+
+print("\nСклади понад 80% завантаження:")
+
+print(risk_storage[
+          ["warehouse_name",
+           "load_percent"]])
