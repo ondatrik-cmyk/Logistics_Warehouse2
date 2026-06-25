@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 conn = sqlite3.connect("online_store.db")
 
@@ -360,3 +361,96 @@ print("\nСклади понад 80% завантаження:")
 print(risk_storage[
           ["warehouse_name",
            "load_percent"]])
+
+#9.- Агрегувати shipments по місяцях
+# - Виконати декомпозицію:
+# - Trend   - Seasonality   - Residuals - Визначити пікові місяці та сезонні коливання
+# - Побудувати прогноз на 6 місяців:   - Moving Average   - Exponential Smoothing
+# - Лінійна регресія по тренду - Порівняти фактичні та прогнозні значення
+
+query_forecast = """
+SELECT
+    DATE(shipped_date, 'start of month') AS month,
+    COUNT(*) AS shipments
+FROM shipments
+WHERE shipped_date IS NOT NULL
+GROUP BY month
+ORDER BY month
+"""
+
+df_forecast = pd.read_sql_query(query_forecast, conn)
+df_forecast["month"] = pd.to_datetime(df_forecast["month"])
+
+df_forecast["moving_average"] = df_forecast["shipments"].rolling(window=3).mean()
+
+alpha = 0.3
+df_forecast["exp_smoothing"] = df_forecast["shipments"].copy()
+
+for i in range(1, len(df_forecast)):
+    df_forecast.loc[i, "exp_smoothing"] = (
+        alpha * df_forecast.loc[i, "shipments"] +
+        (1 - alpha) * df_forecast.loc[i - 1, "exp_smoothing"])
+
+last = df_forecast.tail(12).copy()
+
+x = np.arange(len(last))
+y = last["shipments"]
+m, b = np.polyfit(x, y, 1)
+last["linear_regression"] = m * x + b
+
+future_x = np.arange(len(last), len(last) + 6)
+future_forecast = m * future_x + b
+
+future_months = pd.date_range(
+    last["month"].iloc[-1] + pd.DateOffset(months=1),
+    periods=6,
+    freq="MS")
+
+df_future = pd.DataFrame({
+    "month": future_months,
+    "forecast": future_forecast})
+
+print("Прогноз на 6 місяців:")
+print(df_future)
+
+plt.figure(figsize=(12, 6))
+
+plt.plot(
+    df_forecast["month"],
+    df_forecast["shipments"],
+    marker="o",
+    label="Actual")
+
+plt.plot(
+    df_forecast["month"],
+    df_forecast["moving_average"],
+    marker="o",
+    label="Moving Average")
+
+plt.plot(
+    df_forecast["month"],
+    df_forecast["exp_smoothing"],
+    marker="o",
+    label="Exponential Smoothing")
+
+plt.plot(
+    last["month"],
+    last["linear_regression"],
+    color="red",
+    linewidth=3,
+    label="Linear Regression")
+
+plt.plot(
+    df_future["month"],
+    df_future["forecast"],
+    "r--",
+    linewidth=3,
+    label="Forecast 6 months")
+
+plt.title("Прогнозування обсягу відвантажень")
+plt.xlabel("Місяць")
+plt.ylabel("Кількість відвантажень")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
