@@ -1,0 +1,237 @@
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+*.dll
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+develop-eggs/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+share/python-wheels/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Ruff
+.ruff_cache/
+
+# Cython debug symbols
+cython_debug/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Environments
+.env
+.env.*
+.venv
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# Hatch
+.hatch/
+
+# UV
+.uv/
+uv.lock
+
+# Conda
+conda-meta/
+*.conda
+
+# pyenv
+.python-version
+
+# IDEs and Editors
+
+# VS Code
+.vscode/
+
+# JetBrains (PyCharm)
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.cache/
+
+# Secrets
+secrets.json
+credentials.json
+*.pem
+*.key
+
+# Local settings
+config.local.*
+settings.local.*
+
+# Database files
+*.sqlite3
+*.db
+
+# Build artifacts
+*.tar.gz
+*.zip
+*.whl
+
+# PDM
+.pdm-python
+.pdm-build/
+
+# MkDocs
+/site
+
+# Profiling
+.prof
+
+# VS Code testing
+.pytest_cache/
+
+# Generated files
+*.bak
+*.orig
+
+# Coverage
+coverage/
+.coverage
+
+# mypy
+.mypy_cache/
+
+# pytest
+.pytest_cache/
+
+# pyright
+.pyright/
+
+# FastAPI
+.fastapi/
+
+# Static analysis
+.bandit/
+
+# Docker
+docker-compose.override.yml
+
+# Local docker env
+.docker/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
